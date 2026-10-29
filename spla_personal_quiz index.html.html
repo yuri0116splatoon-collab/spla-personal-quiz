@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自分のこと、どれだけ知ってる!? クイズ</title>
+<style>
+:root{--ink:#15152b;--pink:#ff3ca6;--cyan:#26d9ff;--lime:#d7ff35;--purple:#8b5cf6}
+*{box-sizing:border-box}
+body{margin:0;color:#fff;font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:radial-gradient(circle at 10% 10%,#4b1e80 0,transparent 28%),radial-gradient(circle at 90% 30%,#006b86 0,transparent 30%),#111327;min-height:100vh;padding:18px}
+.wrap{max-width:760px;margin:auto}
+header{text-align:center;padding:24px 12px 20px;border:3px solid var(--lime);border-radius:24px;background:linear-gradient(135deg,#24244c,#17172d);box-shadow:0 8px 0 #080816}
+.kicker{color:var(--cyan);font-weight:900;letter-spacing:.12em}
+h1{font-size:clamp(28px,7vw,48px);line-height:1.15;margin:8px 0;color:#fff;text-shadow:3px 3px 0 var(--pink)}
+header p{margin:10px 0 0;color:#e7e7ff}
+.badge{display:inline-block;background:var(--pink);padding:6px 12px;border-radius:999px;font-weight:900;margin-top:12px}
+.progress{height:10px;background:#383853;border-radius:99px;margin:20px 0 8px;overflow:hidden}
+#bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--lime),var(--pink));transition:width .2s}
+.meta{display:flex;justify-content:space-between;color:#d9d9f3;font-weight:700;font-size:14px}
+.card{margin-top:12px;padding:22px;border:2px solid #52527d;border-radius:22px;background:#20203b;box-shadow:0 7px 0 #09091a}
+.qnum{color:var(--lime);font-weight:900;letter-spacing:.08em}
+h2{font-size:clamp(21px,5vw,28px);margin:8px 0 18px}
+.options{display:grid;gap:10px}
+.option{display:flex;gap:12px;align-items:center;text-align:left;width:100%;border:2px solid #52527d;border-radius:15px;padding:13px 14px;background:#2d2d4e;color:white;font-size:16px;font-weight:750;cursor:pointer;min-height:54px}
+.option .letter{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:var(--cyan);color:#10142b;font-weight:1000}
+.option:hover{border-color:var(--lime);transform:translateY(-1px)}
+.option.selected{border-color:var(--lime);background:#3b3d48;box-shadow:0 0 0 2px #d7ff3540}
+button:focus-visible{outline:3px solid white;outline-offset:3px}
+.actions{display:flex;gap:10px;margin-top:18px}
+button.action{border:0;border-radius:13px;padding:13px 18px;font-size:16px;font-weight:900;cursor:pointer}
+#next{background:var(--lime);color:#17172b;flex:1}
+#back{background:#464666;color:white}
+#next:disabled{opacity:.4;cursor:not-allowed}
+.small{font-size:13px;color:#c8c8e7;text-align:center;margin:16px 0}
+.result{display:none;text-align:center}
+.score{font-size:clamp(42px,12vw,72px);font-weight:1000;color:var(--lime);text-shadow:3px 3px 0 var(--pink);margin:12px}
+.rank{font-size:24px;font-weight:1000;color:var(--cyan)}
+.review{text-align:left;margin-top:18px}
+.review-item{padding:12px;border-bottom:1px solid #484866}
+.good{color:var(--lime);font-weight:900}.bad{color:#ff83c7;font-weight:900}
+.restart{background:var(--pink);color:white;margin-top:18px;width:100%}
+footer{text-align:center;color:#aaaad0;font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="kicker">INK CHALLENGE ・ PERSONAL QUIZ</div>
+<h1>自分のこと、<br>どれだけ知ってる!? クイズ</h1>
+<p>友達のキミは、どこまで本人のことを知ってるかな？</p>
+<div class="badge">全11問・4択チャレンジ</div>
+</header>
+<div id="quiz">
+<div class="progress"><div id="bar"></div></div>
+<div class="meta"><span id="counter">第1問 / 11問</span><span id="answered">回答済み 0</span></div>
+<section class="card">
+<div class="qnum" id="qnum">QUESTION 01</div>
+<h2 id="question"></h2>
+<div class="options" id="options"></div>
+<div class="actions"><button class="action" id="back" type="button">戻る</button><button class="action" id="next" type="button" disabled>次へ！</button></div>
+</section>
+<p class="small">※選択肢の順番は一部ランダム！最後に結果が出るよ。</p>
+</div>
+<section class="card result" id="result">
+<div class="kicker">CHALLENGE COMPLETE!</div>
+<h2>結果発表！</h2>
+<div class="score" id="score"></div>
+<div class="rank" id="rank"></div>
+<p id="message"></p>
+<div class="review" id="review"></div>
+<button class="action restart" id="restart" type="button">もう一度挑戦する</button>
+</section>
+<footer>Fan-made game-inspired quiz • スマホ対応</footer>
+</div>
+<script>
+const raw = [
+{q:"自分が一番好きな食べ物は？",a:["うなぎ","ラーメン","寿司","焼肉"],c:0},
+{q:"自分が一番好きなポケモンは？",a:["ピカチュウ","ミュウ","レックウザ","ゲンガー"],c:2},
+{q:"自分が苦手なものは？",a:["暗いところ","高いところ","昆虫","幽霊"],c:2},
+{q:"自分が一番行ってみたい場所は？",a:["北海道","東京","海外","沖縄"],c:0},
+{q:"自分が友達に求める一番大切なものは？",a:["面白さ","優しさ","信頼","努力"],c:1},
+{q:"自分が落ち込んだとき、どうしてほしい？",a:["そっとしておいてほしい","とにかく遊んでほしい","相談に乗ってほしい","励ましてほしい"],c:1},
+{q:"自分が友達にされて一番嬉しいことは？",a:["イジられること","褒められること","一緒に遊ぶこと","相談してもらうこと"],c:0},
+{q:"自分が絶対に許せないことは？",a:["嘘をつくこと","無視すること","怖がらせること","物を壊すこと"],c:2},
+{q:"今までで一番嬉しかった出来事は？",a:["ゲーム仲間に尊敬されていること","ゲームで41キル！","みんなから理事長って呼ばれてること","XP3000行ったこと"],c:1},
+{q:"自分が一番尊敬している人は？",a:["先生","家族","親友","恋人"],c:0},
+{q:"自分の目標は？",a:["目指せ100傑！","もう一度XP3000！","違う武器で40キル！","弟子を増やしたい！"],c:0}
+];
+let questions=[],index=0,answers=[];
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+function setup(){questions=raw.map((item,i)=>{const opts=item.a.map((label,j)=>({label,correct:j===item.c}));if(i<8)shuffle(opts);return {...item,opts}});index=0;answers=Array(questions.length).fill(null);document.getElementById("quiz").style.display="block";document.getElementById("result").style.display="none";render()}
+function render(){const item=questions[index];document.getElementById("counter").textContent=`第${index+1}問 / ${questions.length}問`;document.getElementById("qnum").textContent=`QUESTION ${String(index+1).padStart(2,"0")}`;document.getElementById("question").textContent=item.q;document.getElementById("bar").style.width=`${index/questions.length*100}%`;document.getElementById("answered").textContent=`回答済み ${answers.filter(x=>x!==null).length}`;const box=document.getElementById("options");box.innerHTML="";item.opts.forEach((opt,j)=>{const b=document.createElement("button");b.type="button";b.className="option"+(answers[index]===j?" selected":"");b.innerHTML=`<span class="letter">${"ABCD"[j]}</span><span></span>`;b.lastElementChild.textContent=opt.label;b.onclick=()=>{answers[index]=j;render()};box.appendChild(b)});document.getElementById("back").disabled=index===0;document.getElementById("next").disabled=answers[index]===null;document.getElementById("next").textContent=index===questions.length-1?"結果を見る！":"次へ！"}
+function finish(){const score=answers.reduce((sum,ans,i)=>sum+(ans!==null&&questions[i].opts[ans].correct?1:0),0);document.getElementById("quiz").style.display="none";const r=document.getElementById("result");r.style.display="block";document.getElementById("bar").style.width="100%";document.getElementById("score").textContent=`${score} / ${questions.length}`;let rank,msg;if(score<=2){rank="まだまだこれから";msg="ここからもっと本人のことを知っていこう！"}else if(score<=5){rank="友達レベル";msg="いい感じ！でも、まだ知らないことがあるかも。"}else if(score<=8){rank="理解者";msg="かなり知ってるね！なかなかの理解度！"}else if(score<=10){rank="真の理解者";msg="すごい！本人のことをよくわかってる！"}else{rank="自分のことを知り尽くした神";msg="全問正解！まさに本人マスター！"}document.getElementById("rank").textContent=rank;document.getElementById("message").textContent=msg;const rev=document.getElementById("review");rev.innerHTML="<h3>答え合わせ</h3>";questions.forEach((q,i)=>{const chosen=answers[i]===null?null:q.opts[answers[i]];const correct=q.opts.find(o=>o.correct);const div=document.createElement("div");div.className="review-item";const p=document.createElement("div");p.textContent=`${i+1}. ${q.q}`;const p2=document.createElement("div");p2.className=chosen&&chosen.correct?"good":"bad";p2.textContent=`あなたの回答：${chosen?chosen.label:"未回答"}`;const p3=document.createElement("div");p3.textContent=`正解：${correct.label}`;div.append(p,p2,p3);rev.appendChild(div)})}
+document.getElementById("next").onclick=()=>{if(index<questions.length-1){index++;render()}else finish()};document.getElementById("back").onclick=()=>{if(index>0){index--;render()}};document.getElementById("restart").onclick=setup;setup();
+</script>
+</body>
+</html>
